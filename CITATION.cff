@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use Fuse-T, please cite the conference paper below."
+title: "Fuse-T"
+type: software
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/SV25-22/Fuse-T"
+authors:
+  - family-names: "Stanković"
+    given-names: "Aleksandar"
+    email: "stankovic.sv25.2022@uns.ac.rs"
+    orcid: "https://orcid.org/0009-0003-5238-7251"
+preferred-citation:
+  type: conference-paper
+  title: "Fuse-T Gated Residual Late Fusion of Text Semantics and Thread Topology for Unseen-Event Rumour Classification in Conversational Reply Graphs"
+  authors:
+    - family-names: "Stanković"
+      given-names: "Aleksandar"
+      orcid: "https://orcid.org/0009-0003-5238-7251"
+  year: 2026
+  collection-title: "13th International Conference on Electrical, Electronics and Computer Engineering (IcETRAN)"
+  conference:
+    name: "13th International Conference on Electrical, Electronics and Computer Engineering (IcETRAN)"
+    date-start: 2026-06-08
+    date-end: 2026-06-11
+    location: "Silver Lake, Serbia"

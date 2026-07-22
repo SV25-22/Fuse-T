@@ -653,6 +653,10 @@ def main():
 
     threads = load_threads_jsonl(Path(args.threads))
     splits = load_splits(Path(args.splits))
+    if args.fold not in splits:
+        raise ValueError(f"Fold '{args.fold}' not found in splits file.")
+    if args.epochs <= args.gnn_warmup_epochs:
+        raise ValueError("--epochs must be greater than --gnn_warmup_epochs.")
     fold = splits[args.fold]
 
     train_ids = set(fold["train_thread_ids"])
