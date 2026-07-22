@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from tqdm import tqdm
@@ -16,6 +17,8 @@ LABEL_MAP_4 = {
 
 RUMOUR_DIR_CANDIDATES = ["rumours", "rumors"]
 NONRUMOUR_DIR_CANDIDATES = ["non-rumours", "non-rumors"]
+URL_RE = re.compile(r"(?:https?://|www\.)\S+", flags=re.IGNORECASE)
+MENTION_RE = re.compile(r"(?<!\w)@\w+")
 
 
 def read_json(path: Path):
@@ -56,7 +59,30 @@ def parse_text(tweet_obj: dict) -> str:
     )
 
 
-def load_tweets(thread_dir: Path) -> Dict[str, dict]:
+def normalize_text(
+    text: str,
+    *,
+    lowercase: bool = True,
+    strip_urls: bool = True,
+    strip_mentions: bool = True,
+) -> str:
+    """Apply the text normalization described in the Fuse-T paper."""
+    if strip_urls:
+        text = URL_RE.sub(" ", text)
+    if strip_mentions:
+        text = MENTION_RE.sub(" ", text)
+    if lowercase:
+        text = text.lower()
+    return " ".join(text.split())
+
+
+def load_tweets(
+    thread_dir: Path,
+    *,
+    lowercase: bool = True,
+    strip_urls: bool = True,
+    strip_mentions: bool = True,
+) -> Dict[str, dict]:
     tweets: Dict[str, dict] = {}
 
     source_dir = thread_dir / "source-tweets"
@@ -67,7 +93,12 @@ def load_tweets(thread_dir: Path) -> Dict[str, dict]:
                 continue
             tid = p.stem
             tweets[tid] = {
-                "text": parse_text(obj),
+                "text": normalize_text(
+                    parse_text(obj),
+                    lowercase=lowercase,
+                    strip_urls=strip_urls,
+                    strip_mentions=strip_mentions,
+                ),
                 "created_at": parse_created_at(obj),
             }
 
@@ -79,7 +110,12 @@ def load_tweets(thread_dir: Path) -> Dict[str, dict]:
                 continue
             tid = p.stem
             tweets[tid] = {
-                "text": parse_text(obj),
+                "text": normalize_text(
+                    parse_text(obj),
+                    lowercase=lowercase,
+                    strip_urls=strip_urls,
+                    strip_mentions=strip_mentions,
+                ),
                 "created_at": parse_created_at(obj),
             }
 
@@ -202,6 +238,9 @@ def main():
     ap.add_argument("--label_mode", type=str, default="binary", choices=["binary", "4class"])
     ap.add_argument("--infer_missing_structure", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--infer_strategy", type=str, default="star", choices=["star"])
+    ap.add_argument("--lowercase", action=argparse.BooleanOptionalAction, default=True)
+    ap.add_argument("--strip-urls", action=argparse.BooleanOptionalAction, default=True)
+    ap.add_argument("--strip-mentions", action=argparse.BooleanOptionalAction, default=True)
 
     args = ap.parse_args()
 
@@ -235,7 +274,12 @@ def main():
                 struct_obj = read_json(struct_path) if struct_path.exists() else None
                 root_id, edges = edges_from_structure(struct_obj or {})
 
-                tweets = load_tweets(thread_dir)
+                tweets = load_tweets(
+                    thread_dir,
+                    lowercase=args.lowercase,
+                    strip_urls=args.strip_urls,
+                    strip_mentions=args.strip_mentions,
+                )
 
                 if not root_id:
                     source_dir = thread_dir / "source-tweets"
@@ -299,6 +343,11 @@ def main():
         "counts_by_label": counts_by_label,
         "counts_by_event": counts_by_event,
         "event_dirs_detected": [str(p) for p in event_dirs],
+        "text_normalization": {
+            "lowercase": bool(args.lowercase),
+            "strip_urls": bool(args.strip_urls),
+            "strip_mentions": bool(args.strip_mentions),
+        },
     }
     out_summary.parent.mkdir(parents=True, exist_ok=True)
     out_summary.write_text(json.dumps(summary, indent=2), encoding="utf-8")

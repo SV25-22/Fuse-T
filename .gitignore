@@ -1,0 +1,24 @@
+# Local datasets and experiment artifacts
+/data/
+/results/
+/checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Environments and editors
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

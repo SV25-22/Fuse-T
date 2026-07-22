@@ -421,6 +421,8 @@ def main():
 
     threads = load_threads_jsonl(Path(args.threads))
     splits = load_splits(Path(args.splits))
+    if args.fold not in splits:
+        raise ValueError(f"Fold '{args.fold}' not found in splits file.")
     fold = splits[args.fold]
 
     train_ids = set(fold["train_thread_ids"])
@@ -433,6 +435,7 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     txt = TextModel(args.model_name).to(device)
+    text_dim = txt.encoder.config.hidden_size
     ck = torch.load(args.init_text_ckpt, map_location="cpu")
     txt.load_state_dict(ck.get("state_dict", ck), strict=False)
     
@@ -458,7 +461,6 @@ def main():
     weights = (counts.sum() / np.maximum(counts, 1.0))
     class_w = torch.tensor(weights / weights.mean(), dtype=torch.float32).to(device)
 
-    text_dim = 768
     in_dim = 7 + text_dim
     ro = args.hidden_dim if args.readout != "meanmax" else args.hidden_dim * 2
     graph_out_dim = ro + train_ds[0].gfeat.size(-1)
@@ -516,9 +518,24 @@ def main():
     result = {
         "title": "Text-Attributed GNN Baseline",
         "fold": args.fold,
+        "seed": args.seed,
+        "model_name": args.model_name,
+        "readout": args.readout,
+        "undirected": bool(args.undirected),
+        "early_minutes": args.early_minutes,
+        "early_k": args.early_k,
+        "hidden_dim": args.hidden_dim,
+        "num_layers": args.num_layers,
+        "dropout": args.dropout,
+        "batch_size": args.batch_size,
+        "epochs": args.epochs,
+        "lr": args.lr,
+        "weight_decay": args.weight_decay,
+        "text_dim": text_dim,
         "best_val_macro_f1": float(best_val),
         "test_macro_f1": float(test_f1),
         "test_acc": float(test_acc),
+        "train_class_counts": counts.tolist(),
     }
 
     (out_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

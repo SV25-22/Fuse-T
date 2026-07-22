@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fuse-t"
+version = "1.0.0"
+description = "Gated residual late fusion for unseen-event rumour classification"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Aleksandar Stanković", email = "stankovic.sv25.2022@uns.ac.rs" },
+]
+dependencies = [
+  "numpy>=1.24,<3",
+  "python-dateutil>=2.8,<3",
+  "scikit-learn>=1.2,<2",
+  "torch>=2.1,<3",
+  "torch-geometric>=2.5,<3",
+  "tqdm>=4.65,<5",
+  "transformers>=4.36,<5",
+]
+
+[project.urls]
+Repository = "https://github.com/SV25-22/Fuse-T"
+
+[tool.setuptools.packages.find]
+include = ["scripts*", "src*"]
